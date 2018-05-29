@@ -24,7 +24,7 @@
     cardTemplate: document.querySelector('.cardTemplate'),
     container: document.querySelector('.main'),
     addDialog: document.querySelector('.dialog-container'),
-    daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    daysOfWeek: ['M', 'Tu', 'W', 'Th', 'F', 'Sa', 'Su']
   };
 
 
@@ -50,11 +50,11 @@
     const selected = select.options[select.selectedIndex]
     const key = selected.value
     const label = selected.textContent
-    if (!app.selectedCities){
+    if (!app.selectedCities) {
       app.selectedCities = []
     }
     app.getForecast(key, label)
-    app.selectedCities.push({key:key, label:label})
+    app.selectedCities.push({ key: key, label: label })
     app.saveSelectedCities()
     app.toggleAddDialog(false)
   })
@@ -83,71 +83,71 @@
   // Updates a weather card with the latest weather forecast. If the card
   // doesn't already exist, it's cloned from the template.
   app.updateForecastCard = function (data) {
-    var dataLastUpdated = new Date(data.created);
-    var sunrise = data.channel.astronomy.sunrise;
-    var sunset = data.channel.astronomy.sunset;
-    var current = data.channel.item.condition;
-    var humidity = data.channel.atmosphere.humidity;
-    var wind = data.channel.wind;
+    const dataLastUpdated = new Date(data.created)
+    const sunrise = data.channel.astronomy.sunrise
+    const sunset = data.channel.astronomy.sunset
+    const current = data.channel.item.condition
+    const humidity = data.channel.atmosphere.humidity
+    const wind = data.channel.wind
 
-    var card = app.visibleCards[data.key];
+    let card = app.visibleCards[data.key]
     if (!card) {
-      card = app.cardTemplate.cloneNode(true);
-      card.classList.remove('cardTemplate');
-      card.querySelector('.location').textContent = data.label;
-      card.removeAttribute('hidden');
-      app.container.appendChild(card);
-      app.visibleCards[data.key] = card;
+      card = app.cardTemplate.cloneNode(true)
+      card.classList.remove('cardTemplate')
+      card.querySelector('.location').textContent = data.label
+      card.removeAttribute('hidden')
+      app.container.appendChild(card)
+      app.visibleCards[data.key] = card
     }
 
     // Verifies the data provide is newer than what's already visible
     // on the card, if it's not bail, if it is, continue and update the
     // time saved in the card
-    var cardLastUpdatedElem = card.querySelector('.card-last-updated');
-    var cardLastUpdated = cardLastUpdatedElem.textContent;
+    const cardLastUpdatedElem = card.querySelector('.card-last-updated')
+    let cardLastUpdated = cardLastUpdatedElem.textContent
     if (cardLastUpdated) {
-      cardLastUpdated = new Date(cardLastUpdated);
+      cardLastUpdated = new Date(cardLastUpdated)
       // Bail if the card has more recent data then the data
       if (dataLastUpdated.getTime() < cardLastUpdated.getTime()) {
-        return;
+        return
       }
     }
-    cardLastUpdatedElem.textContent = data.created;
+    cardLastUpdatedElem.textContent = data.created
 
-    card.querySelector('.description').textContent = current.text;
-    card.querySelector('.date').textContent = current.date;
-    card.querySelector('.current .icon').classList.add(app.getIconClass(current.code));
+    card.querySelector('.description').textContent = current.text
+    card.querySelector('.date').textContent = current.date
+    card.querySelector('.current .icon').classList.add(app.getIconClass(current.code))
     card.querySelector('.current .temperature .value').textContent =
-      Math.round(current.temp);
-    card.querySelector('.current .sunrise').textContent = sunrise;
-    card.querySelector('.current .sunset').textContent = sunset;
+      Math.round(current.temp)
+    card.querySelector('.current .sunrise').textContent = sunrise
+    card.querySelector('.current .sunset').textContent = sunset
     card.querySelector('.current .humidity').textContent =
-      Math.round(humidity) + '%';
+      Math.round(humidity) + '%'
     card.querySelector('.current .wind .value').textContent =
-      Math.round(wind.speed);
-    card.querySelector('.current .wind .direction').textContent = wind.direction;
-    var nextDays = card.querySelectorAll('.future .oneday');
-    var today = new Date();
-    today = today.getDay();
+      Math.round(wind.speed)
+    card.querySelector('.current .wind .direction').textContent = wind.direction
+    const nextDays = card.querySelectorAll('.future .oneday')
+    let today = new Date()
+    today = today.getDay()
     for (var i = 0; i < 7; i++) {
-      var nextDay = nextDays[i];
-      var daily = data.channel.item.forecast[i];
+      const nextDay = nextDays[i]
+      const daily = data.channel.item.forecast[i]
       if (daily && nextDay) {
         nextDay.querySelector('.date').textContent =
-          app.daysOfWeek[(i + today) % 7];
-        nextDay.querySelector('.icon').classList.add(app.getIconClass(daily.code));
+          app.daysOfWeek[(i + today) % 7]
+        nextDay.querySelector('.icon').classList.add(app.getIconClass(daily.code))
         nextDay.querySelector('.temp-high .value').textContent =
-          Math.round(daily.high);
+          Math.round(daily.high)
         nextDay.querySelector('.temp-low .value').textContent =
-          Math.round(daily.low);
+          Math.round(daily.low)
       }
     }
     if (app.isLoading) {
-      app.spinner.setAttribute('hidden', true);
-      app.container.removeAttribute('hidden');
-      app.isLoading = false;
+      app.spinner.setAttribute('hidden', true)
+      app.container.removeAttribute('hidden')
+      app.isLoading = false
     }
-  };
+  }
 
 
   /*****************************************************************************
@@ -165,31 +165,48 @@
    * freshest data.
    */
   app.getForecast = function (key, label) {
-    var statement = 'select * from weather.forecast where woeid=' + key;
-    var url = 'https://query.yahooapis.com/v1/public/yql?format=json&q=' +
+    const statement = 'select * from weather.forecast where woeid=' + key;
+    const url = 'https://query.yahooapis.com/v1/public/yql?format=json&q=' +
       statement;
-    // TODO add cache logic here
+    if ('caches' in window) {
+      /*
+       * Check if the service worker has already cached this city's weather
+       * data. If the service worker has the data, then display the cached
+       * data while the app fetches the latest data.
+       */
+      caches.match(url).then(function (response) {
+        if (response) {
+          response.json().then(function updateFromCache(json) {
+            const results = json.query.results
+            results.key = key
+            results.label = label
+            results.created = json.query.created
+            app.updateForecastCard(results)
+          })
+        }
+      })
+    }
 
     // Fetch the latest data.
-    var request = new XMLHttpRequest();
+    var request = new XMLHttpRequest()
     request.onreadystatechange = function () {
       if (request.readyState === XMLHttpRequest.DONE) {
         if (request.status === 200) {
-          var response = JSON.parse(request.response);
-          var results = response.query.results;
-          results.key = key;
-          results.label = label;
-          results.created = response.query.created;
-          app.updateForecastCard(results);
+          const response = JSON.parse(request.response)
+          const results = response.query.results
+          results.key = key
+          results.label = label
+          results.created = response.query.created
+          app.updateForecastCard(results)
         }
       } else {
         // Return the initial weather forecast since no data is available.
-        app.updateForecastCard(initialWeatherForecast);
+        app.updateForecastCard(initialWeatherForecast)
       }
     };
-    request.open('GET', url);
-    request.send();
-  };
+    request.open('GET', url)
+    request.send()
+  }
 
   // Iterate all of the cards and attempt to get the latest forecast data
   app.updateForecasts = function () {
@@ -277,37 +294,37 @@
    * discussion.
    */
   var initialWeatherForecast = {
-    key: '2459115',
-    label: 'New York, NY',
-    created: '2016-07-22T01:00:00Z',
+    key: '2446593',
+    label: 'Maryville, MO',
+    created: "2018-05-29T19:17:23Z",
     channel: {
       astronomy: {
-        sunrise: "5:43 am",
-        sunset: "8:21 pm"
+        sunrise: "5:53 am",
+        sunset: "8:41 pm"
       },
       item: {
         condition: {
-          text: "Windy",
-          date: "Thu, 21 Jul 2016 09:00 PM EDT",
-          temp: 56,
-          code: 24
+          text: "Partly Cloudy",
+          date: "Tue, 29 May 2018 01:00 PM CDT",
+          temp: "87",
+          code: "30"
         },
         forecast: [
-          { code: 44, high: 86, low: 70 },
-          { code: 44, high: 94, low: 73 },
-          { code: 4, high: 95, low: 78 },
-          { code: 24, high: 75, low: 89 },
-          { code: 24, high: 89, low: 77 },
-          { code: 44, high: 92, low: 79 },
-          { code: 44, high: 89, low: 77 }
+          { code: 30, high: 89, low: 67 },
+          { code: 47, high: 89, low: 64 },
+          { code: 34, high: 91, low: 67 },
+          { code: 4, high: 98, low: 69 },
+          { code: 4, high: 86, low: 69 },
+          { code: 34, high: 90, low: 61 },
+          { code: 30, high: 96, low: 62 }
         ]
       },
       atmosphere: {
-        humidity: 56
+        humidity: 59
       },
       wind: {
-        speed: 25,
-        direction: 195
+        speed: 18,
+        direction: 135
       }
     }
   };
@@ -347,5 +364,18 @@
     app.saveSelectedCities();
   }
 
-  // TODO add service worker code here
+  // check if the browser supports service workers, 
+  // if it does, register the service worker.
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+      .register('./service-worker.js')
+      .then(() => {
+        console.log('Service worker registered.')
+      })
+  }
+
+
+
+
 })();
