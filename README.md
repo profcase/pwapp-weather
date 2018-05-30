@@ -22,11 +22,11 @@ code lab from Google.
 1. Open Chrome.
 2. Open Apps / Web Server.
 3. Set folder to this root folder on local machine.
-4. Open browser to http://127.0.0.1:8887/.
+4. Open browser to <http://127.0.0.1:8887/.>
 
 ## Deploy to Firebase
 
-1. Create a Firebase account at https://firebase.google.com/console/
+1. Create a Firebase account at <https://firebase.google.com/console/>
 2. Install the most recent LTS (long-term support) version of Node.js.
 3. On Windows, open PowerShell as Administrator and install Firebase tools: npm install -g firebase-tools
 4. Login with a Google account: firebase login
@@ -36,8 +36,8 @@ code lab from Google.
 8. Select no when it asks to overwrite index.html.
 9. Deploy with: firebase deploy
 
-Project Console: https://console.firebase.google.com/project/pwapp-weather/overview
-Hosting URL: https://pwapp-weather.firebaseapp.com
+Project Console: <https://console.firebase.google.com/project/pwapp-weather/overview>
+Hosting URL: <https://pwapp-weather.firebaseapp.com>
 
 ## Minimizing JavaScript
 
@@ -47,6 +47,13 @@ To speed up loading:
 * Use [only the Firebase you need](https://firebase.google.com/docs/web/setup).
 
 Firebase automatically gzips text assets (html, css, js).
+
+## Speed up Storage
+
+HTML5's localStorage can be slow.
+
+* Replace localStorage implementation with asynchronous storage IndexedDB (idb).
+* Use [localForage](https://github.com/localForage/localForage) wrapper to idb.
 
 ## Recommendations
 

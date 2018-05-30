@@ -13,19 +13,20 @@
 // limitations under the License.
 
 
+
 (function () {
   'use strict';
 
   var app = {
     isLoading: true,
     visibleCards: {},
-    selectedCities: [],
+    selectedCitiesList: [],
     spinner: document.querySelector('.loader'),
     cardTemplate: document.querySelector('.cardTemplate'),
     container: document.querySelector('.main'),
     addDialog: document.querySelector('.dialog-container'),
     daysOfWeek: ['M', 'Tu', 'W', 'Th', 'F', 'Sa', 'Su']
-  };
+  }
 
 
   /*****************************************************************************
@@ -34,15 +35,25 @@
    *
    ****************************************************************************/
 
-  document.getElementById('butRefresh').addEventListener('click', function () {
-    // Refresh all of the forecasts
-    app.updateForecasts();
-  });
+  document.getElementById('buttonClear').addEventListener('click', function () {
+    console.log('Clearing list of cities from ' + JSON.stringify(app.selectedCitiesList))
+    app.selectedCitiesList = [
+      { key: initialWeatherForecast.key, label: initialWeatherForecast.label }
+    ];
+    app.saveSelectedCities()
+    console.log('List of cities is now ' + JSON.stringify(app.selectedCitiesList))
+    //TODO: update UI
+  })
 
-  document.getElementById('butAdd').addEventListener('click', function () {
+  document.getElementById('buttonRefresh').addEventListener('click', function () {
+    // Refresh all of the forecasts
+    app.updateForecasts()
+  })
+
+  document.getElementById('buttonAdd').addEventListener('click', function () {
     // Open/show the add new city dialog
-    app.toggleAddDialog(true);
-  });
+    app.toggleAddDialog(true)
+  })
 
   document.getElementById('butAddCity').addEventListener('click', function () {
     // Add the newly selected city
@@ -50,11 +61,11 @@
     const selected = select.options[select.selectedIndex]
     const key = selected.value
     const label = selected.textContent
-    if (!app.selectedCities) {
-      app.selectedCities = []
+    if (!app.selectedCitiesList) {
+      app.selectedCitiesList = []
     }
     app.getForecast(key, label)
-    app.selectedCities.push({ key: key, label: label })
+    app.selectedCitiesList.push({ key: key, label: label })
     app.saveSelectedCities()
     app.toggleAddDialog(false)
   })
@@ -103,7 +114,7 @@
     // Verifies the data provide is newer than what's already visible
     // on the card, if it's not bail, if it is, continue and update the
     // time saved in the card
-    const cardLastUpdatedElem = card.querySelector('.card-last-updated')
+    const cardLastUpdatedElem = card.querySelector('.card-last-updated');
     var cardLastUpdated = cardLastUpdatedElem.textContent
     if (cardLastUpdated) {
       cardLastUpdated = new Date(cardLastUpdated)
@@ -117,14 +128,11 @@
     card.querySelector('.description').textContent = current.text
     card.querySelector('.date').textContent = current.date
     card.querySelector('.current .icon').classList.add(app.getIconClass(current.code))
-    card.querySelector('.current .temperature .value').textContent =
-      Math.round(current.temp)
+    card.querySelector('.current .temperature .value').textContent = Math.round(current.temp)
     card.querySelector('.current .sunrise').textContent = sunrise
     card.querySelector('.current .sunset').textContent = sunset
-    card.querySelector('.current .humidity').textContent =
-      Math.round(humidity) + '%'
-    card.querySelector('.current .wind .value').textContent =
-      Math.round(wind.speed)
+    card.querySelector('.current .humidity').textContent = Math.round(humidity) + '%'
+    card.querySelector('.current .wind .value').textContent = Math.round(wind.speed)
     card.querySelector('.current .wind .direction').textContent = wind.direction
     const nextDays = card.querySelectorAll('.future .oneday')
     var today = new Date()
@@ -133,13 +141,10 @@
       const nextDay = nextDays[i]
       const daily = data.channel.item.forecast[i]
       if (daily && nextDay) {
-        nextDay.querySelector('.date').textContent =
-          app.daysOfWeek[(i + today) % 7]
+        nextDay.querySelector('.date').textContent = app.daysOfWeek[(i + today) % 7]
         nextDay.querySelector('.icon').classList.add(app.getIconClass(daily.code))
-        nextDay.querySelector('.temp-high .value').textContent =
-          Math.round(daily.high)
-        nextDay.querySelector('.temp-low .value').textContent =
-          Math.round(daily.low)
+        nextDay.querySelector('.temp-high .value').textContent = Math.round(daily.high)
+        nextDay.querySelector('.temp-low .value').textContent = Math.round(daily.low)
       }
     }
     if (app.isLoading) {
@@ -149,12 +154,11 @@
     }
   }
 
-
   /*****************************************************************************
-   *
-   * Methods for dealing with the model
-   *
-   ****************************************************************************/
+  *
+  * Methods for dealing with the model
+  *
+  ****************************************************************************/
 
   /*
    * Gets a forecast for a specific city and updates the card with the data.
@@ -166,8 +170,8 @@
    */
   app.getForecast = function (key, label) {
     const statement = 'select * from weather.forecast where woeid=' + key
-    const url = 'https://query.yahooapis.com/v1/public/yql?format=json&q=' +
-      statement
+    const url = 'https://query.yahooapis.com/v1/public/yql?format=json&q=' + statement
+
     if ('caches' in window) {
       /*
        * Check if the service worker has already cached this city's weather
@@ -208,21 +212,25 @@
     request.send()
   }
 
-  // Iterate all of the cards and attempt to get the latest forecast data
+  // Iterate through all cards and attempt to get latest forecast
   app.updateForecasts = function () {
-    var keys = Object.keys(app.visibleCards)
+    const keys = Object.keys(app.visibleCards)
     keys.forEach(function (key) {
       app.getForecast(key)
     })
   }
 
-  // TODO add saveSelectedCities function here
-
   app.saveSelectedCities = function () {
-    const selectedCities = JSON.stringify(app.selectedCities)
-    localStorage.selectedCities = selectedCities
+    const citiesString = JSON.stringify(app.selectedCitiesList)
+    console.log('Preparing to save selectedCities as ' + citiesString)
+    //localStorage.selectedCities = citiesString
+    localforage.setItem('selectedCities', citiesString).then(function (value) {
+      console.log('Updated selectedCities to ' + value)
+    }).catch(function (err) {
+      console.log('Error while saving selectedCities: ' + err)
+      console.log('Unchanged selectedCities is ' + citiesString)
+    })
   }
-
 
   app.getIconClass = function (weatherCode) {
     // Weather codes: https://developer.yahoo.com/weather/documentation.html#codes
@@ -328,52 +336,57 @@
       }
     }
   }
-  // TODO uncomment line below to test app with fake data
-  //app.updateForecastCard(initialWeatherForecast)
 
-  // TODO add startup code here
+  app.checkServiceWorker = function () {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(function (reg) {
+          console.log('Service worker registered. Scope is ' + reg.scope)
+        }).catch(function (error) {
+          console.log('Service worker registration failed with ' + error)
+        })
+    }
+  }
 
-  /************************************************************************
-   *
-   * Code required to start the app
-   *
-   * NOTE: To simplify this codelab, we've used localStorage.
+  app.initializeFromStorage = function () {
+
+    /************************************************************************
    *   localStorage is a synchronous API and has serious performance
    *   implications. It should not be used in production applications!
    *   Instead, check out IDB (https://www.npmjs.com/package/idb) or
    *   SimpleDB (https://gist.github.com/inexorabletash/c8069c042b734519680c)
    ************************************************************************/
-
-
-  app.selectedCities = localStorage.selectedCities
-  if (app.selectedCities) {
-    app.selectedCities = JSON.parse(app.selectedCities)
-    app.selectedCities.forEach(function (city) {
-      app.getForecast(city.key, city.label)
+    //app.selectedCities = localStorage.selectedCities
+    console.log('On startup, localforage is: ' + localforage);
+    localforage.getItem('selectedCities').then(function (value) {
+      console.log('On startup, initial stored selectedCities value =' + value);
+      if (value) {
+        app.selectedCitiesList = JSON.parse(value);
+        app.selectedCitiesList.forEach(function (city) {
+          app.getForecast(city.key, city.label)
+        })
+      } else {
+        /* The user is using the app for the first time, or the user has not
+        * saved any cities, so show the user some fake data. A real app in this
+        * scenario could guess the user's location via IP lookup and then inject
+        * that data into the page.
+        */
+        app.updateForecastCard(initialWeatherForecast)
+        app.selectedCitiesList = [
+          { key: initialWeatherForecast.key, label: initialWeatherForecast.label }
+        ];
+        app.saveSelectedCities()
+      }
+    }).catch(function (err) {
+      console.log('On startup, error getting initial stored selectedCities value: ' + err);
     })
-  } else {
-    /* The user is using the app for the first time, or the user has not
-    * saved any cities, so show the user some fake data. A real app in this
-    * scenario could guess the user's location via IP lookup and then inject
-    * that data into the page.
-    */
-    app.updateForecastCard(initialWeatherForecast)
-    app.selectedCities = [
-      { key: initialWeatherForecast.key, label: initialWeatherForecast.label }
-    ]
-    app.saveSelectedCities()
+
   }
+  // TODO uncomment line below to test app with fake data
+  //app.updateForecastCard(initialWeatherForecast)
 
-  // check if the browser supports service workers, 
-  // if it does, register the service worker.
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register('./service-worker.js')
-      .then(function () {
-        console.log('Service worker registered.')
-      })
-  }
-
+  // startup code here
+  app.initializeFromStorage()
+  app.checkServiceWorker()
 
 })()

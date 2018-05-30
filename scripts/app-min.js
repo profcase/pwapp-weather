@@ -3,78 +3,88 @@
   var e = {
       isLoading: !0,
       visibleCards: {},
-      selectedCities: [],
+      selectedCitiesList: [],
       spinner: document.querySelector(".loader"),
       cardTemplate: document.querySelector(".cardTemplate"),
       container: document.querySelector(".main"),
       addDialog: document.querySelector(".dialog-container"),
       daysOfWeek: [ "M", "Tu", "W", "Th", "F", "Sa", "Su" ]
   };
-  document.getElementById("butRefresh").addEventListener("click", function() {
+  document.getElementById("buttonClear").addEventListener("click", function() {
+      console.log("Clearing list of cities from " + JSON.stringify(e.selectedCitiesList)), 
+      e.selectedCitiesList = [ {
+          key: t.key,
+          label: t.label
+      } ], e.saveSelectedCities(), console.log("List of cities is now " + JSON.stringify(e.selectedCitiesList));
+  }), document.getElementById("buttonRefresh").addEventListener("click", function() {
       e.updateForecasts();
-  }), document.getElementById("butAdd").addEventListener("click", function() {
+  }), document.getElementById("buttonAdd").addEventListener("click", function() {
       e.toggleAddDialog(!0);
   }), document.getElementById("butAddCity").addEventListener("click", function() {
       var t = document.getElementById("selectCityToAdd");
-      const a = t.options[t.selectedIndex], c = a.value, s = a.textContent;
-      e.selectedCities || (e.selectedCities = []), e.getForecast(c, s), e.selectedCities.push({
-          key: c,
-          label: s
+      const c = t.options[t.selectedIndex], s = c.value, o = c.textContent;
+      e.selectedCitiesList || (e.selectedCitiesList = []), e.getForecast(s, o), e.selectedCitiesList.push({
+          key: s,
+          label: o
       }), e.saveSelectedCities(), e.toggleAddDialog(!1);
   }), document.getElementById("butAddCancel").addEventListener("click", function() {
       e.toggleAddDialog(!1);
   }), e.toggleAddDialog = function(t) {
       t ? e.addDialog.classList.add("dialog-container--visible") : e.addDialog.classList.remove("dialog-container--visible");
   }, e.updateForecastCard = function(t) {
-      const a = new Date(t.created), c = t.channel.astronomy.sunrise, s = t.channel.astronomy.sunset, n = t.channel.item.condition, r = t.channel.atmosphere.humidity, o = t.channel.wind;
-      var i = e.visibleCards[t.key];
-      i || (i = e.cardTemplate.cloneNode(!0), i.classList.remove("cardTemplate"), i.querySelector(".location").textContent = t.label, 
-      i.removeAttribute("hidden"), e.container.appendChild(i), e.visibleCards[t.key] = i);
-      const d = i.querySelector(".card-last-updated");
-      var l = d.textContent;
-      if (!(l && (l = new Date(l), a.getTime() < l.getTime()))) {
-          d.textContent = t.created, i.querySelector(".description").textContent = n.text, 
-          i.querySelector(".date").textContent = n.date, i.querySelector(".current .icon").classList.add(e.getIconClass(n.code)), 
-          i.querySelector(".current .temperature .value").textContent = Math.round(n.temp), 
-          i.querySelector(".current .sunrise").textContent = c, i.querySelector(".current .sunset").textContent = s, 
-          i.querySelector(".current .humidity").textContent = Math.round(r) + "%", i.querySelector(".current .wind .value").textContent = Math.round(o.speed), 
-          i.querySelector(".current .wind .direction").textContent = o.direction;
-          const u = i.querySelectorAll(".future .oneday");
-          var y = new Date();
-          y = y.getDay();
-          for (var h = 0; 7 > h; h++) {
-              const g = u[h], C = t.channel.item.forecast[h];
-              C && g && (g.querySelector(".date").textContent = e.daysOfWeek[(h + y) % 7], g.querySelector(".icon").classList.add(e.getIconClass(C.code)), 
-              g.querySelector(".temp-high .value").textContent = Math.round(C.high), g.querySelector(".temp-low .value").textContent = Math.round(C.low));
+      const c = new Date(t.created), s = t.channel.astronomy.sunrise, o = t.channel.astronomy.sunset, n = t.channel.item.condition, a = t.channel.atmosphere.humidity, i = t.channel.wind;
+      var r = e.visibleCards[t.key];
+      r || (r = e.cardTemplate.cloneNode(!0), r.classList.remove("cardTemplate"), r.querySelector(".location").textContent = t.label, 
+      r.removeAttribute("hidden"), e.container.appendChild(r), e.visibleCards[t.key] = r);
+      const l = r.querySelector(".card-last-updated");
+      var d = l.textContent;
+      if (!(d && (d = new Date(d), c.getTime() < d.getTime()))) {
+          l.textContent = t.created, r.querySelector(".description").textContent = n.text, 
+          r.querySelector(".date").textContent = n.date, r.querySelector(".current .icon").classList.add(e.getIconClass(n.code)), 
+          r.querySelector(".current .temperature .value").textContent = Math.round(n.temp), 
+          r.querySelector(".current .sunrise").textContent = s, r.querySelector(".current .sunset").textContent = o, 
+          r.querySelector(".current .humidity").textContent = Math.round(a) + "%", r.querySelector(".current .wind .value").textContent = Math.round(i.speed), 
+          r.querySelector(".current .wind .direction").textContent = i.direction;
+          const u = r.querySelectorAll(".future .oneday");
+          var g = new Date();
+          g = g.getDay();
+          for (var y = 0; 7 > y; y++) {
+              const h = u[y], C = t.channel.item.forecast[y];
+              C && h && (h.querySelector(".date").textContent = e.daysOfWeek[(y + g) % 7], h.querySelector(".icon").classList.add(e.getIconClass(C.code)), 
+              h.querySelector(".temp-high .value").textContent = Math.round(C.high), h.querySelector(".temp-low .value").textContent = Math.round(C.low));
           }
           e.isLoading && (e.spinner.setAttribute("hidden", !0), e.container.removeAttribute("hidden"), 
           e.isLoading = !1);
       }
-  }, e.getForecast = function(a, c) {
-      const s = "select * from weather.forecast where woeid=" + a, n = "https://query.yahooapis.com/v1/public/yql?format=json&q=" + s;
+  }, e.getForecast = function(c, s) {
+      const o = "select * from weather.forecast where woeid=" + c, n = "https://query.yahooapis.com/v1/public/yql?format=json&q=" + o;
       "caches" in window && caches.match(n).then(function(t) {
           t && t.json().then(function(t) {
-              const s = t.query.results;
-              s.key = a, s.label = c, s.created = t.query.created, e.updateForecastCard(s);
+              const o = t.query.results;
+              o.key = c, o.label = s, o.created = t.query.created, e.updateForecastCard(o);
           });
       });
-      var r = new XMLHttpRequest();
-      r.onreadystatechange = function() {
-          if (r.readyState === XMLHttpRequest.DONE) {
-              if (200 === r.status) {
-                  const s = JSON.parse(r.response), n = s.query.results;
-                  n.key = a, n.label = c, n.created = s.query.created, e.updateForecastCard(n);
+      var a = new XMLHttpRequest();
+      a.onreadystatechange = function() {
+          if (a.readyState === XMLHttpRequest.DONE) {
+              if (200 === a.status) {
+                  const o = JSON.parse(a.response), n = o.query.results;
+                  n.key = c, n.label = s, n.created = o.query.created, e.updateForecastCard(n);
               }
           } else e.updateForecastCard(t);
-      }, r.open("GET", n), r.send();
+      }, a.open("GET", n), a.send();
   }, e.updateForecasts = function() {
-      var t = Object.keys(e.visibleCards);
+      const t = Object.keys(e.visibleCards);
       t.forEach(function(t) {
           e.getForecast(t);
       });
   }, e.saveSelectedCities = function() {
-      const t = JSON.stringify(e.selectedCities);
-      localStorage.selectedCities = t;
+      const t = JSON.stringify(e.selectedCitiesList);
+      console.log("Preparing to save selectedCities as " + t), localforage.setItem("selectedCities", t).then(function(e) {
+          console.log("Updated selectedCities to " + e);
+      })["catch"](function(e) {
+          console.log("Error while saving selectedCities: " + e), console.log("Unchanged selectedCities is " + t);
+      });
   }, e.getIconClass = function(e) {
       switch (e = parseInt(e)) {
         case 25:
@@ -198,13 +208,23 @@
           }
       }
   };
-  e.selectedCities = localStorage.selectedCities, e.selectedCities ? (e.selectedCities = JSON.parse(e.selectedCities), 
-  e.selectedCities.forEach(function(t) {
-      e.getForecast(t.key, t.label);
-  })) : (e.updateForecastCard(t), e.selectedCities = [ {
-      key: t.key,
-      label: t.label
-  } ], e.saveSelectedCities()), "serviceWorker" in navigator && navigator.serviceWorker.register("./service-worker.js").then(function() {
-      console.log("Service worker registered.");
-  });
+  e.checkServiceWorker = function() {
+      "serviceWorker" in navigator && navigator.serviceWorker.register("./service-worker.js").then(function(e) {
+          console.log("Service worker registered. Scope is " + e.scope);
+      })["catch"](function(e) {
+          console.log("Service worker registration failed with " + e);
+      });
+  }, e.initializeFromStorage = function() {
+      console.log("On startup, localforage is: " + localforage), localforage.getItem("selectedCities").then(function(c) {
+          console.log("On startup, initial stored selectedCities value =" + c), c ? (e.selectedCitiesList = JSON.parse(c), 
+          e.selectedCitiesList.forEach(function(t) {
+              e.getForecast(t.key, t.label);
+          })) : (e.updateForecastCard(t), e.selectedCitiesList = [ {
+              key: t.key,
+              label: t.label
+          } ], e.saveSelectedCities());
+      })["catch"](function(e) {
+          console.log("On startup, error getting initial stored selectedCities value: " + e);
+      });
+  }, e.initializeFromStorage(), e.checkServiceWorker();
 }();
