@@ -39,7 +39,26 @@
 
   <link rel="canonical" href="https://pwapp-weather.firebaseapp.com/">
   <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="styles/inline.css">
+  <!--  Inline critical CSS for speed. -->
+  <style type="text/css">
+    html,
+    body {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      font-family: 'Helvetica', 'Verdana', sans-serif;
+      font-weight: 400;
+      color: #444;
+    }
+  </style>
+  <!-- Use async loading of css if available. -->
+  <link rel="preload" href="styles/inline.css" as="style" onload="this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="styles/inline.css">
+  </noscript>
+
+  <!-- <link rel="stylesheet" href="styles/inline.css"> -->
 
 </head>
 
@@ -155,25 +174,25 @@
   <div class="dialog-container">
     <div class="dialog">
       <div class="dialog-title">Add new city</div>
-        <div class="dialog-body">
-            <label for="selectCityToAdd">Available cities:</label>
-          <select id="selectCityToAdd">
-            <!-- Values map to Yahoo Weather API Where On Earth Identifiers (WOEIDs).
+      <div class="dialog-body">
+        <label for="selectCityToAdd">Available cities:</label>
+        <select id="selectCityToAdd">
+          <!-- Values map to Yahoo Weather API Where On Earth Identifiers (WOEIDs).
                https://developer.yahoo.com/weather/documentation.html#req -->
-            <option value="2357536">Austin, TX</option>
-            <option value="804365">Budapest, Hungary</option>
-            <option value="2404810">Folsom, CA</option>
-            <option value="2446593">Maryville, MO</option>
-            <option value="2466942">Overland Park, KS</option>
-            <option value="2475687">Portland, OR</option>
-            <option value="2519189">White Bear Lake, MN</option>
-            <option value="2520077">Wichita, KS</option>
-            </select>
-        </div>
-        <div class="dialog-buttons">
-          <button id="butAddCity" class="button">Add</button>
-          <button id="butAddCancel" class="button">Cancel</button>
-        </div>
+          <option value="2357536">Austin, TX</option>
+          <option value="804365">Budapest, Hungary</option>
+          <option value="2404810">Folsom, CA</option>
+          <option value="2446593">Maryville, MO</option>
+          <option value="2466942">Overland Park, KS</option>
+          <option value="2475687">Portland, OR</option>
+          <option value="2519189">White Bear Lake, MN</option>
+          <option value="2520077">Wichita, KS</option>
+        </select>
+      </div>
+      <div class="dialog-buttons">
+        <button id="butAddCity" class="button">Add</button>
+        <button id="butAddCancel" class="button">Cancel</button>
+      </div>
     </div>
   </div>
 
