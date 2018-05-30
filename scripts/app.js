@@ -61,8 +61,8 @@
 
   document.getElementById('butAddCancel').addEventListener('click', function () {
     // Close the add new city dialog
-    app.toggleAddDialog(false);
-  });
+    app.toggleAddDialog(false)
+  })
 
 
   /*****************************************************************************
@@ -74,11 +74,11 @@
   // Toggles the visibility of the add new city dialog.
   app.toggleAddDialog = function (visible) {
     if (visible) {
-      app.addDialog.classList.add('dialog-container--visible');
+      app.addDialog.classList.add('dialog-container--visible')
     } else {
-      app.addDialog.classList.remove('dialog-container--visible');
+      app.addDialog.classList.remove('dialog-container--visible')
     }
-  };
+  }
 
   // Updates a weather card with the latest weather forecast. If the card
   // doesn't already exist, it's cloned from the template.
@@ -90,7 +90,7 @@
     const humidity = data.channel.atmosphere.humidity
     const wind = data.channel.wind
 
-    let card = app.visibleCards[data.key]
+    var card = app.visibleCards[data.key]
     if (!card) {
       card = app.cardTemplate.cloneNode(true)
       card.classList.remove('cardTemplate')
@@ -104,7 +104,7 @@
     // on the card, if it's not bail, if it is, continue and update the
     // time saved in the card
     const cardLastUpdatedElem = card.querySelector('.card-last-updated')
-    let cardLastUpdated = cardLastUpdatedElem.textContent
+    var cardLastUpdated = cardLastUpdatedElem.textContent
     if (cardLastUpdated) {
       cardLastUpdated = new Date(cardLastUpdated)
       // Bail if the card has more recent data then the data
@@ -127,7 +127,7 @@
       Math.round(wind.speed)
     card.querySelector('.current .wind .direction').textContent = wind.direction
     const nextDays = card.querySelectorAll('.future .oneday')
-    let today = new Date()
+    var today = new Date()
     today = today.getDay()
     for (var i = 0; i < 7; i++) {
       const nextDay = nextDays[i]
@@ -165,9 +165,9 @@
    * freshest data.
    */
   app.getForecast = function (key, label) {
-    const statement = 'select * from weather.forecast where woeid=' + key;
+    const statement = 'select * from weather.forecast where woeid=' + key
     const url = 'https://query.yahooapis.com/v1/public/yql?format=json&q=' +
-      statement;
+      statement
     if ('caches' in window) {
       /*
        * Check if the service worker has already cached this city's weather
@@ -203,18 +203,18 @@
         // Return the initial weather forecast since no data is available.
         app.updateForecastCard(initialWeatherForecast)
       }
-    };
+    }
     request.open('GET', url)
     request.send()
   }
 
   // Iterate all of the cards and attempt to get the latest forecast data
   app.updateForecasts = function () {
-    var keys = Object.keys(app.visibleCards);
+    var keys = Object.keys(app.visibleCards)
     keys.forEach(function (key) {
-      app.getForecast(key);
-    });
-  };
+      app.getForecast(key)
+    })
+  }
 
   // TODO add saveSelectedCities function here
 
@@ -234,7 +234,7 @@
       case 34: // fair (day)
       case 36: // hot
       case 3200: // not available
-        return 'clear-day';
+        return 'clear-day'
       case 0: // tornado
       case 1: // tropical storm
       case 2: // hurricane
@@ -247,7 +247,7 @@
       case 17: // hail
       case 35: // mixed rain and hail
       case 40: // scattered showers
-        return 'rain';
+        return 'rain'
       case 3: // severe thunderstorms
       case 4: // thunderstorms
       case 37: // isolated thunderstorms
@@ -255,7 +255,7 @@
       case 39: // scattered thunderstorms (not a typo)
       case 45: // thundershowers
       case 47: // isolated thundershowers
-        return 'thunderstorms';
+        return 'thunderstorms'
       case 5: // mixed rain and snow
       case 7: // mixed snow and sleet
       case 13: // snow flurries
@@ -266,27 +266,27 @@
       case 42: // scattered snow showers
       case 43: // heavy snow
       case 46: // snow showers
-        return 'snow';
+        return 'snow'
       case 15: // blowing snow
       case 19: // dust
       case 20: // foggy
       case 21: // haze
       case 22: // smoky
-        return 'fog';
+        return 'fog'
       case 24: // windy
       case 23: // blustery
-        return 'windy';
+        return 'windy'
       case 26: // cloudy
       case 27: // mostly cloudy (night)
       case 28: // mostly cloudy (day)
       case 31: // clear (night)
-        return 'cloudy';
+        return 'cloudy'
       case 29: // partly cloudy (night)
       case 30: // partly cloudy (day)
       case 44: // partly cloudy
         return 'partly-cloudy-day';
     }
-  };
+  }
 
   /*
    * Fake weather data that is presented when the user first uses the app,
@@ -327,9 +327,9 @@
         direction: 135
       }
     }
-  };
+  }
   // TODO uncomment line below to test app with fake data
-  //app.updateForecastCard(initialWeatherForecast);
+  //app.updateForecastCard(initialWeatherForecast)
 
   // TODO add startup code here
 
@@ -345,11 +345,11 @@
    ************************************************************************/
 
 
-  app.selectedCities = localStorage.selectedCities;
+  app.selectedCities = localStorage.selectedCities
   if (app.selectedCities) {
-    app.selectedCities = JSON.parse(app.selectedCities);
+    app.selectedCities = JSON.parse(app.selectedCities)
     app.selectedCities.forEach(function (city) {
-      app.getForecast(city.key, city.label);
+      app.getForecast(city.key, city.label)
     })
   } else {
     /* The user is using the app for the first time, or the user has not
@@ -357,11 +357,11 @@
     * scenario could guess the user's location via IP lookup and then inject
     * that data into the page.
     */
-    app.updateForecastCard(initialWeatherForecast);
+    app.updateForecastCard(initialWeatherForecast)
     app.selectedCities = [
       { key: initialWeatherForecast.key, label: initialWeatherForecast.label }
-    ];
-    app.saveSelectedCities();
+    ]
+    app.saveSelectedCities()
   }
 
   // check if the browser supports service workers, 
@@ -370,12 +370,10 @@
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker
       .register('./service-worker.js')
-      .then(() => {
+      .then(function () {
         console.log('Service worker registered.')
       })
   }
 
 
-
-
-})();
+})()

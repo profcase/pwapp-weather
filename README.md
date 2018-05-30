@@ -39,6 +39,15 @@ code lab from Google.
 Project Console: https://console.firebase.google.com/project/pwapp-weather/overview
 Hosting URL: https://pwapp-weather.firebaseapp.com
 
+## Minimizing JavaScript
+
+To speed up loading:
+
+* Use [Ugify.js](http://lisperator.net/uglifyjs/).
+* Use [only the Firebase you need](https://firebase.google.com/docs/web/setup).
+
+Firebase automatically gzips text assets (html, css, js).
+
 ## Recommendations
 
 * Use [sw-precache](https://github.com/GoogleChrome/sw-precache) library for service workers.
